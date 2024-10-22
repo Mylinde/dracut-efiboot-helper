@@ -1,6 +1,4 @@
-```markdown
 # Kernel Postinstall Script
-===========================
 
 **Overview**
 ------------
@@ -50,8 +48,7 @@ This script is executed after installing a new kernel to perform the necessary s
 *   This script is designed for use in Debian-based systems but can be ported to other distributions with minor adjustments.
 
 
-# Kernel Postremove Script
-==========================
+# Kernel Postremoval Script
 
 **Overview**
 ------------
@@ -83,6 +80,5 @@ This script is executed after removing a kernel package to perform the necessary
 ----------
 
 *   Ensure the kernel version passed as a parameter matches the one being removed.
-*   This script assumes the UEFI boot entries were created by the corresponding Postrinst script.
+*   This script assumes the UEFI boot entries were created by the corresponding Postinst script.
 *   This script is designed for use in Debian-based systems but can be adapted for other distributions with minor adjustments.
-```
