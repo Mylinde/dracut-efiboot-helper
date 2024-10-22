@@ -1,0 +1,55 @@
+#!/bin/sh
+
+version="$1"
+bootdir=/boot
+efidir=$bootdir/efi/EFI/Linux
+partition=$(efibootmgr -v | grep "HD" | awk '{print $3}' | cut -d, -f1 | cut -c '4' | head -n1)
+
+[ -x /usr/bin/dracut ] || exit 0
+
+# passing the kernel version is required
+[ -z "${version}" ] && exit 0
+
+# exit if custom kernel does not need an initramfs
+[ "$INITRD" = 'No' ] && exit 0
+
+# absolute file name of kernel image may be passed as a second argument;
+# create the initrd in the same directory
+if [ -n "$2" ]; then
+	bootdir=$(dirname "$2")
+fi
+
+# avoid running multiple times
+if [ -n "$DEB_MAINT_PARAMS" ]; then
+        eval set -- "$DEB_MAINT_PARAMS"
+        if [ -z "$1" ] || [ "$1" != "configure" ]; then
+                exit 0
+        fi
+fi
+
+# check if modules.dep already exists. If not create it
+# maybe this problem could also be solved via Debian triggers
+if [ ! -f $bootdir/../lib/modules/$version/modules.dep ]; then
+    depmod -a -F $bootdir/System.map-$version $version
+fi
+
+# we're good - create initramfs
+echo "dracut: Generating $bootdir/initrd.img-${version}"
+dracut -q --force $bootdir/initrd.img-${version} "${version}" >&2
+
+# create UEFI executable
+echo "dracut: Generating $efidir/linux-${version}.efi"
+dracut -q --force --uefi "$efidir/linux-${version}.efi" "$version"
+
+# create UEFI rescue executable
+echo "dracut: Generating $efidir/linux-${version}-rescue.efi"
+dracut -q --force --add "rescue" --kernel-cmdline "systemd.unit=rescue.target" --uefi "$efidir/linux-${version}-rescue.efi" "$version"
+
+# register UEFI rescue executable as boot entry
+echo "Registering UEFI executable as boot entry..."
+efibootmgr -c -p "${partition}" -d $efidir/linux-${version}-rescue.efi -L "Linux-${version}-rescue" -l "\EFI\Linux\linux-${version}-rescue.efi"
+
+# register UEFI executable as boot entry
+echo "Registering UEFI executable as boot entry..."
+efibootmgr -c -p "${partition}" -d $efidir/linux-${version}.efi -L "Linux-${version}" -l "\EFI\Linux\linux-${version}.efi"
+
