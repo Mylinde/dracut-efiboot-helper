@@ -42,7 +42,7 @@ This script is executed after installing a new kernel to perform the necessary s
 
 **Notes**
 ----------
-
+*   The script does not sign the executables for secureboot.
 *   Ensure all required packages (especially `dracut` and `efibootmgr`) are installed and up-to-date.
 *   Using this script in combination with a boot manager may lead to unexpected behavior. In such cases, prefer boot manager-specific configuration mechanisms.
 *   This script is designed for use in Debian-based systems but can be ported to other distributions with minor adjustments.
