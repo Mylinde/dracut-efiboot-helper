@@ -46,10 +46,19 @@ echo "dracut: Generating $efidir/linux-${version}-rescue.efi"
 dracut -q --force --add "rescue" --kernel-cmdline "systemd.unit=rescue.target" --uefi "$efidir/linux-${version}-rescue.efi" "$version"
 
 # register UEFI rescue executable as boot entry
-echo "Registering UEFI executable as boot entry..."
-efibootmgr -c -p "${partition}" -d $efidir/linux-${version}-rescue.efi -L "Linux-${version}-rescue" -l "\EFI\Linux\linux-${version}-rescue.efi"
+echo "Registering UEFI rescue executable as boot entry..."
+rescue_entry=$(efibootmgr -v | grep -oP "Linux-${version}-rescue")
+if [ -z "$rescue_entry" ]; then
+  efibootmgr -c -p "${partition}" -d $efidir/linux-${version}-rescue.efi -L "Linux-${version}-rescue" -l "\EFI\Linux\linux-${version}-rescue.efi"
+  else
+	  echo "Boot entry already exists"
+fi
 
 # register UEFI executable as boot entry
 echo "Registering UEFI executable as boot entry..."
-efibootmgr -c -p "${partition}" -d $efidir/linux-${version}.efi -L "Linux-${version}" -l "\EFI\Linux\linux-${version}.efi"
-
+boot_entry=$(efibootmgr -v | grep -oP "Linux-${version}")
+if [ -z "$boot_entry" ]; then
+  efibootmgr -c -p "${partition}" -d $efidir/linux-${version}.efi -L "Linux-${version}" -l "\EFI\Linux\linux-${version}.efi"
+  else
+  	echo "Boot entry already exists"
+fi
