@@ -37,6 +37,16 @@ fi
 echo "dracut: Generating $bootdir/initrd.img-${version}"
 dracut -q --force $bootdir/initrd.img-${version} "${version}" >&2
 
+# check if a bootloader exists and exit
+verify_bootloader_exists() {
+  command -v "$@" >/dev/null 2>&1 && exit 0
+}
+
+verify_bootloader_exists grub-mkconfig && exit 0
+verify_bootloader_exists bootctl && exit 0
+
+# creating UEFI executable if no bootloader exists
+
 # create UEFI executable
 echo "dracut: Generating $efidir/linux-${version}.efi"
 dracut -q --force --uefi "$efidir/linux-${version}.efi" "$version"
@@ -45,19 +55,11 @@ dracut -q --force --uefi "$efidir/linux-${version}.efi" "$version"
 echo "dracut: Generating $efidir/linux-${version}-rescue.efi"
 dracut -q --force --add "rescue" --kernel-cmdline "systemd.unit=rescue.target" --uefi "$efidir/linux-${version}-rescue.efi" "$version"
 
-# register UEFI rescue executable as boot entry
-echo "Registering UEFI rescue executable as boot entry..."
-rescue_entry=$(efibootmgr -v | grep -oP "Linux-${version}-rescue")
-if [ -z "$rescue_entry" ]; then
-  efibootmgr -c -p "${partition}" -d $efidir/linux-${version}-rescue.efi -L "Linux-${version}-rescue" -l "\EFI\Linux\linux-${version}-rescue.efi"
-  else
-	  echo "Boot entry already exists"
-fi
-
-# register UEFI executable as boot entry
+# register UEFI executables as boot entries
 echo "Registering UEFI executable as boot entry..."
 boot_entry=$(efibootmgr -v | grep -oP "Linux-${version}")
 if [ -z "$boot_entry" ]; then
+  efibootmgr -c -p "${partition}" -d $efidir/linux-${version}-rescue.efi -L "Linux-${version}-rescue" -l "\EFI\Linux\linux-${version}-rescue.efi"
   efibootmgr -c -p "${partition}" -d $efidir/linux-${version}.efi -L "Linux-${version}" -l "\EFI\Linux\linux-${version}.efi"
   else
   	echo "Boot entry already exists"
