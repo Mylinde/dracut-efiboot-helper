@@ -38,12 +38,7 @@ echo "dracut: Generating $bootdir/initrd.img-${version}"
 dracut -q --force $bootdir/initrd.img-${version} "${version}" >&2
 
 # check if a bootloader exists and exit
-verify_bootloader_exists() {
-  command -v "$@" >/dev/null 2>&1
-}
-
-verify_bootloader_exists grub-mkconfig && exit 0
-verify_bootloader_exists bootctl && exit 0
+[ -x /usr/sbin/update-grub ] || [ -x /usr/bin/bootctl ] && exit 0
 
 # creating UEFI executable if no bootloader exists
 
