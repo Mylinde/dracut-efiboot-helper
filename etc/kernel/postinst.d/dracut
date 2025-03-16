@@ -37,18 +37,18 @@ fi
 echo "dracut: Generating $bootdir/initrd.img-${version}"
 dracut -q --force $bootdir/initrd.img-${version} "${version}" >&2
 
-# check if a bootloader exists and exit
+# check if a bootloader exists
 [ -x /usr/bin/grub* ] || [ -x /usr/bin/bootctl ] && exit 0
 
-# creating UEFI executable if no bootloader exists
-
-# create UEFI executable
+# if not create a UEFI executable
 echo "dracut: Generating $efidir/linux-${version}.efi"
 dracut -q --force --uefi "$efidir/linux-${version}.efi" "$version"
 
-# create UEFI rescue executable
+# also create a UEFI rescue executable
 echo "dracut: Generating $efidir/linux-${version}-rescue.efi"
 dracut -q --force --add "rescue" --kernel-cmdline "systemd.unit=rescue.target" --uefi "$efidir/linux-${version}-rescue.efi" "$version"
+
+[ -x /usr/bin/efibootmgr ] || exit 0
 
 # register UEFI executables as boot entries
 # and avoid duplicate entries
