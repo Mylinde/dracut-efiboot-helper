@@ -50,8 +50,7 @@ dracut -q --force --add "rescue" --kernel-cmdline "systemd.unit=rescue.target" -
 
 [ -x /usr/bin/efibootmgr ] || exit 0
 
-# register UEFI executables as boot entries
-# and avoid duplicate entries
+# register UEFI executable with efibootmgr as boot entry
 echo "Registering UEFI executable as boot entry..."
 boot_entry=$(efibootmgr -v | grep -oP "Linux-${version}")
 if [ -z "$boot_entry" ]; then
