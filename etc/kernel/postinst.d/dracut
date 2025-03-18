@@ -55,8 +55,8 @@ dracut -q --force --add "rescue" --kernel-cmdline "systemd.unit=rescue.target" -
 echo "Registering UEFI executable as boot entry..."
 boot_entry=$(efibootmgr -v | grep -oP "Linux-${version}")
 if [ -z "$boot_entry" ]; then
-  efibootmgr -c -p "${partition}" -d $efidir/linux-${version}-rescue.efi -L "Linux-${version}-rescue" -l "\EFI\Linux\linux-${version}-rescue.efi"
-  efibootmgr -c -p "${partition}" -d $efidir/linux-${version}.efi -L "Linux-${version}" -l "\EFI\Linux\linux-${version}.efi"
+        efibootmgr -c -p "${partition}" -d $efidir/linux-${version}-rescue.efi -L "Linux-${version}-rescue" -l "\EFI\Linux\linux-${version}-rescue.efi"
+        efibootmgr -c -p "${partition}" -d $efidir/linux-${version}.efi -L "Linux-${version}" -l "\EFI\Linux\linux-${version}.efi"
   else
   	echo "Boot entry already exists"
 fi

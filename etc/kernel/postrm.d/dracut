@@ -28,6 +28,8 @@ fi
 # delete initramfs
 rm -f "$bootdir/initrd.img-${version}"
 
+[ -x /usr/bin/efibootmgr ] || exit 0
+
 # unregister UEFI executable as boot entry
 efibootmgr -B -L "Linux-${version}"
 efibootmgr -B -L "Linux-${version}-rescue"
