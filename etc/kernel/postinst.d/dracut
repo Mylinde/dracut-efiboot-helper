@@ -29,16 +29,18 @@ fi
 
 # check if modules.dep already exists. If not create it
 # maybe this problem could also be solved via Debian triggers
-if [ ! -f $bootdir/../lib/modules/$version/modules.dep ]; then
-    depmod -a -F $bootdir/System.map-$version $version
+if [ ! -f "$bootdir/../lib/modules/$version/modules.dep" ]; then
+    depmod -a -F "$bootdir/System.map-$version" "$version"
 fi
 
 # we're good - create initramfs
 echo "dracut: Generating $bootdir/initrd.img-${version}"
-dracut -q --force $bootdir/initrd.img-${version} "${version}" >&2
+dracut -q --force "$bootdir/initrd.img-${version}" "${version}" >&2
 
 # check if a bootloader exists
-[ -x /usr/bin/grub* ] || [ -x /usr/bin/bootctl ] && exit 0
+if [ -n "$(find /usr/bin -name 'grub*' -executable -print -quit)" ] || [ -x /usr/bin/bootctl ]; then
+	exit 0
+fi
 
 # if not create a UEFI executable
 echo "dracut: Generating $efidir/linux-${version}.efi"
@@ -54,8 +56,8 @@ dracut -q --force --add "rescue" --kernel-cmdline "systemd.unit=rescue.target" -
 echo "Registering UEFI executable as boot entry..."
 boot_entry=$(efibootmgr -v | grep -oP "Linux-${version}")
 if [ -z "$boot_entry" ]; then
-        efibootmgr -c -p "${partition}" -d $efidir/linux-${version}-rescue.efi -L "Linux-${version}-rescue" -l "\EFI\Linux\linux-${version}-rescue.efi"
-        efibootmgr -c -p "${partition}" -d $efidir/linux-${version}.efi -L "Linux-${version}" -l "\EFI\Linux\linux-${version}.efi"
+        efibootmgr -c -p "${partition}" -d "$efidir/linux-${version}-rescue.efi" -L "Linux-${version}-rescue" -l "\\EFI\\Linux\\linux-${version}-rescue.efi"
+        efibootmgr -c -p "${partition}" -d "$efidir/linux-${version}.efi" -L "Linux-${version}" -l "\\EFI\\Linux\\linux-${version}.efi"
   else
   	echo "Boot entry already exists"
 fi
